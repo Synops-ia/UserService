@@ -7,6 +7,17 @@ import (
     "UserService/internal/models"
 )
 
+func TestUserRepository_Save(t *testing.T) {
+    expectedUser := models.User{Email: "email", Password: "password"}
+
+    userRepo := NewUserRepositoryImpl();
+    actualUser := userRepo.Save(expectedUser)
+    userInMemory := userRepo.users[expectedUser.Email]
+
+    assert.Equal(t, expectedUser, actualUser)
+    assert.Equal(t, expectedUser, userInMemory)
+}
+
 func TestUserRepository_FindByEmailAlreadyExists(t *testing.T) {
     expectedUser := models.User{Email: "email", Password: "password"}
 
