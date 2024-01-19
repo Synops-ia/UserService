@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"UserService/internal/models"
+	"fmt"
 )
 
 type UserRepository interface {
@@ -26,6 +27,7 @@ func (u *UserRepositoryImpl) Save(user models.User) models.User {
 
 func (u *UserRepositoryImpl) FindByEmail(email string) (models.User, bool) {
     user, exists := u.users[email]
+    fmt.Println("User: ", user)
     return user, exists
 }
 
