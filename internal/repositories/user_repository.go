@@ -20,6 +20,17 @@ func NewUserRepositoryImpl() *UserRepositoryImpl {
     }
 }
 
+func NewUserRepositoryImplWithUsers(users map[string]models.User) *UserRepositoryImpl {
+    usersMapFromInput := make(map[string]models.User)
+    for key, value := range users {
+        usersMapFromInput[key] = value
+    }
+
+    return &UserRepositoryImpl{
+        users: usersMapFromInput,
+    }
+}
+
 func (u *UserRepositoryImpl) Save(user models.User) models.User {
     u.users[user.Email] = user
     return user
