@@ -37,7 +37,7 @@ func (u *UserControllerImpl) CreateUser(c *gin.Context) {
     }
 
     c.Header("Content-Type", "application/json")
-    c.JSON(http.StatusCreated, newUser)
+    c.JSON(http.StatusOK, newUser)
 }
 
 func errorToCode(err error) int {
