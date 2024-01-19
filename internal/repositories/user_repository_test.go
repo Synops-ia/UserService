@@ -8,15 +8,25 @@ import (
 )
 
 func TestUserRepository_FindByEmailAlreadyExists(t *testing.T) {
-    email := "email"
-    password := "password"
+    expectedUser := models.User{Email: "email", Password: "password"}
 
     userRepo := NewUserRepositoryImpl();
-    userRepo.users["email"] = models.User{Email: email, Password: password}
+    userRepo.users[expectedUser.Email] = expectedUser
 
-    user, exists := userRepo.FindByEmail(email)
+    actualUser, exists := userRepo.FindByEmail(expectedUser.Email)
 
     assert.True(t, exists)
-    assert.NotNil(t, user)
+    assert.Equal(t, expectedUser, actualUser)
+}
+
+func TestUserRepository_FindByEmailInexistent(t *testing.T) {
+    email := "email"
+
+    userRepo := NewUserRepositoryImpl();
+
+    actualUser, exists := userRepo.FindByEmail(email)
+
+    assert.False(t, exists)
+    assert.Equal(t, models.User{}, actualUser)
 }
 
