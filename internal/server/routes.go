@@ -2,21 +2,24 @@ package server
 
 import (
 	"net/http"
-
 	"github.com/gin-gonic/gin"
+
+    "UserService/internal/repositories"
+    "UserService/internal/services"
+    "UserService/internal/controllers"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
+    
+    userRepository := repositories.NewUserRepositoryImpl()
+    userService := services.NewUserServiceImpl(userRepository)
+    userController := controllers.NewUserControllerImpl(userService)
 
-	r.GET("/", s.HelloWorldHandler)
+    api := r.Group("api/v1")
+
+    api.POST("/users", userController.CreateUser)
 
 	return r
 }
 
-func (s *Server) HelloWorldHandler(c *gin.Context) {
-	resp := make(map[string]string)
-	resp["message"] = "Hello World"
-
-	c.JSON(http.StatusOK, resp)
-}
