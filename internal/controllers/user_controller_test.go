@@ -42,6 +42,7 @@ func TestUserController_CreateUserAlreadyExists(t *testing.T) {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusConflict)
 	}
 }
+
 func TestUserController_CreateUser(t *testing.T) {
 	r := gin.New()
 
