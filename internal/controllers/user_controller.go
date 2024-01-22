@@ -3,6 +3,7 @@ package controllers
 import (
     "net/http"
     "github.com/gin-gonic/gin"
+    "github.com/gin-contrib/sessions"
 
     "UserService/internal/services"
     "UserService/internal/models"
@@ -10,6 +11,7 @@ import (
 
 type UserController interface {
     CreateUser(c *gin.Context)
+    CreateSession(c *gin.Context)
 }
 
 type UserControllerImpl struct {
@@ -40,11 +42,35 @@ func (u *UserControllerImpl) CreateUser(c *gin.Context) {
     c.JSON(http.StatusOK, newUser)
 }
 
+func (u *UserControllerImpl) CreateSession(c *gin.Context) {
+    var userToAuthenticate models.User
+
+    if err := c.ShouldBindJSON(&userToAuthenticate); err != nil {
+        c.JSON(http.StatusBadRequest, err.Error())
+        return
+    }
+
+    session := sessions.Default(c)
+    err := u.userService.CreateSession(session, userToAuthenticate)
+    if err != nil {
+        c.JSON(errorToCode(err), err.Error())
+        return
+    }
+
+    c.JSON(http.StatusOK, session.Get("email"))
+}
+
 func errorToCode(err error) int {
     switch err {
+    case services.ErrUserNotFound:
+        return http.StatusNotFound
     case services.ErrUserAlreadyExists:
         return http.StatusConflict
     case services.ErrHashingPassword:
+        return http.StatusInternalServerError
+    case services.ErrInvalidCredentials:
+        return http.StatusUnauthorized
+    case services.ErrCreatingSession:
         return http.StatusInternalServerError
     default:
         return http.StatusInternalServerError

@@ -68,3 +68,4 @@ func TestUserController_CreateUser(t *testing.T) {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 }
+
