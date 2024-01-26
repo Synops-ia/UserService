@@ -1,6 +1,7 @@
 name: Publish Package to dockerHub
 on:
-  release:
+  push:
+
 
 jobs:
   push-docker-image:
@@ -29,7 +30,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            session_key=${{ secrets.SESSION_KEY }}
 
