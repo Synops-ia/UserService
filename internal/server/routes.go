@@ -22,7 +22,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 	r.Use(sessions.Sessions("session", store))
 
-	userRepository := repositories.NewUserRepositoryImpl()
+	userRepository := repositories.NewUserRepositoryImpl(s.db)
 	userService := services.NewUserServiceImpl(userRepository)
 	userController := controllers.NewUserControllerImpl(userService)
 
