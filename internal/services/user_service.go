@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"github.com/gin-contrib/sessions"
@@ -14,14 +15,15 @@ var (
 	ErrUserNotFound       = errors.New("error user not found")
 	ErrUserAlreadyExists  = errors.New("error user already exists")
 	ErrHashingPassword    = errors.New("error hashing password")
+	ErrSavingUser         = errors.New("error saving user")
 	ErrInvalidCredentials = errors.New("error invalid credentials")
 	ErrCreatingSession    = errors.New("error creating session")
 	ErrDeletingSession    = errors.New("error deleting session")
 )
 
 type UserService interface {
-	CreateUser(user models.User) (models.User, error)
-	CreateSession(session sessions.Session, userToAuthenticate models.User) error
+	CreateUser(c context.Context, user models.User) error
+	CreateSession(c context.Context, session sessions.Session, userToAuthenticate models.User) error
 	DeleteSession(session sessions.Session) error
 }
 
@@ -35,27 +37,32 @@ func NewUserServiceImpl(userRepository repositories.UserRepository) *UserService
 	}
 }
 
-func (u *UserServiceImpl) CreateUser(user models.User) (models.User, error) {
-	if _, exists := u.userRepository.FindByEmail(user.Email); exists {
-		return models.User{}, ErrUserAlreadyExists
+func (u *UserServiceImpl) CreateUser(c context.Context, user models.User) error {
+	userStored, err := u.userRepository.FindByEmail(c, user.Email)
+	if userStored != (models.User{}) {
+		return ErrUserAlreadyExists
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return models.User{}, ErrHashingPassword
+		return ErrHashingPassword
 	}
 	user.Password = string(hashedPassword)
+	err = u.userRepository.Save(c, user)
+	if err != nil {
+		return ErrSavingUser
+	}
 
-	return u.userRepository.Save(user), nil
+	return nil
 }
 
-func (u *UserServiceImpl) CreateSession(session sessions.Session, userToAuthenticate models.User) error {
-	userStored, exists := u.userRepository.FindByEmail(userToAuthenticate.Email)
-	if !exists {
+func (u *UserServiceImpl) CreateSession(c context.Context, session sessions.Session, userToAuthenticate models.User) error {
+	userStored, err := u.userRepository.FindByEmail(c, userToAuthenticate.Email)
+	if userStored == (models.User{}) {
 		return ErrUserNotFound
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(userStored.Password), []byte(userToAuthenticate.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(userStored.Password), []byte(userToAuthenticate.Password))
 	if err != nil {
 		return ErrInvalidCredentials
 	}

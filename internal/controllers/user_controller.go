@@ -34,7 +34,7 @@ func (u *UserControllerImpl) CreateUser(c *gin.Context) {
 		return
 	}
 
-	newUser, err := u.userService.CreateUser(newUser)
+	err := u.userService.CreateUser(c, newUser)
 	if err != nil {
 		c.JSON(errorToCode(err), err.Error())
 		return
@@ -53,7 +53,7 @@ func (u *UserControllerImpl) CreateSession(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
-	err := u.userService.CreateSession(session, userToAuthenticate)
+	err := u.userService.CreateSession(c, session, userToAuthenticate)
 	if err != nil {
 		c.JSON(errorToCode(err), err.Error())
 		return
