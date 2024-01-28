@@ -1,44 +1,46 @@
 package repositories
 
 import (
+	"UserService/internal/database"
 	"UserService/internal/models"
-	"fmt"
+	"context"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type UserRepository interface {
-    Save(user models.User) models.User
-    FindByEmail(email string) (models.User, bool)
+	Save(c context.Context, user models.User) error
+	FindByEmail(c context.Context, email string) (models.User, error)
 }
 
 type UserRepositoryImpl struct {
-    users map[string]models.User
+	database database.Database
 }
 
-func NewUserRepositoryImpl() *UserRepositoryImpl {
-    return &UserRepositoryImpl{
-        users: make(map[string]models.User),
-    }
+func NewUserRepositoryImpl(db database.Database) *UserRepositoryImpl {
+	return &UserRepositoryImpl{
+		database: db,
+	}
 }
 
-func NewUserRepositoryImplWithUsers(users map[string]models.User) *UserRepositoryImpl {
-    usersMapFromInput := make(map[string]models.User)
-    for key, value := range users {
-        usersMapFromInput[key] = value
-    }
-
-    return &UserRepositoryImpl{
-        users: usersMapFromInput,
-    }
+func (u *UserRepositoryImpl) Save(c context.Context, user models.User) error {
+	users := u.database.Collection("users")
+	_, err := users.InsertOne(c, user)
+	return err
 }
 
-func (u *UserRepositoryImpl) Save(user models.User) models.User {
-    u.users[user.Email] = user
-    return user
+func (u *UserRepositoryImpl) FindByEmail(c context.Context, email string) (models.User, error) {
+	users := u.database.Collection("users")
+	var user models.User
+	err := users.FindOne(c, bson.M{"email": email}).Decode(&user)
+	return user, err
 }
 
-func (u *UserRepositoryImpl) FindByEmail(email string) (models.User, bool) {
-    user, exists := u.users[email]
-    fmt.Println("User: ", user)
-    return user, exists
+func (u *UserRepositoryImpl) insertMany(c context.Context, user map[string]models.User) error {
+	usersCollection := u.database.Collection("users")
+	var usersInterface []interface{}
+	for _, value := range user {
+		usersInterface = append(usersInterface, value)
+	}
+	_, err := usersCollection.InsertMany(c, usersInterface)
+	return err
 }
-
