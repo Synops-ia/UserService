@@ -53,6 +53,7 @@ func (u *UserControllerImpl) CreateSession(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
+
 	err := u.userService.CreateSession(c, session, userToAuthenticate)
 	if err != nil {
 		c.JSON(errorToCode(err), err.Error())

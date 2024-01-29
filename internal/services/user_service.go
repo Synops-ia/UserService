@@ -68,6 +68,12 @@ func (u *UserServiceImpl) CreateSession(c context.Context, session sessions.Sess
 	}
 
 	session.Set("email", userToAuthenticate.Email)
+	session.Options(sessions.Options{
+		HttpOnly: false,
+		Path:     "/",
+		Domain:   "localhost",
+		Secure:   false,
+	})
 	err = session.Save()
 	if err != nil {
 		return ErrCreatingSession
