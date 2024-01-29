@@ -24,6 +24,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	api.POST("/users", userController.CreateUser)
 	api.POST("/sessions", sessionController.CreateSession)
 	api.DELETE("/sessions", sessionController.DeleteSession)
+	api.GET("/me", sessionController.LoginCheck)
 
 	return r
 }

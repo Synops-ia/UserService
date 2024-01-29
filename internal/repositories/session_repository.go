@@ -10,6 +10,7 @@ import (
 type SessionRepository interface {
 	Save(c context.Context, session models.Session) (interface{}, error)
 	DeleteById(c context.Context, sessionId string) error
+	FindById(c context.Context, sessionId string) (models.Session, error)
 }
 
 type SessionRepositoryImpl struct {
@@ -32,4 +33,11 @@ func (s *SessionRepositoryImpl) DeleteById(c context.Context, sessionId string) 
 	sessions := s.database.Collection("sessions")
 	_, err := sessions.DeleteOne(c, bson.M{"_id": sessionId})
 	return err
+}
+
+func (s *SessionRepositoryImpl) FindById(c context.Context, sessionId string) (models.Session, error) {
+	sessions := s.database.Collection("sessions")
+	var session models.Session
+	err := sessions.FindOne(c, bson.M{"_id": sessionId}).Decode(&session)
+	return session, err
 }

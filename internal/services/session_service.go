@@ -14,11 +14,13 @@ var (
 	ErrInvalidCredentials = errors.New("error invalid credentials")
 	ErrCreatingSession    = errors.New("error creating session")
 	ErrDeletingSession    = errors.New("error deleting session")
+	ErrSessionNotFound    = errors.New("error session not found")
 )
 
 type SessionService interface {
 	CreateSession(c context.Context, userToAuthenticate models.User) (interface{}, error)
 	DeleteSession(c context.Context, sessionId string) error
+	LoginCheck(c context.Context, sessionId string) (bool, error)
 }
 
 type SessionServiceImpl struct {
@@ -60,4 +62,12 @@ func (s *SessionServiceImpl) DeleteSession(c context.Context, sessionId string) 
 	}
 
 	return nil
+}
+
+func (s *SessionServiceImpl) LoginCheck(c context.Context, sessionId string) (bool, error) {
+	_, err := s.sessionRepository.FindById(c, sessionId)
+	if err != nil {
+		return false, ErrSessionNotFound
+	}
+	return true, nil
 }

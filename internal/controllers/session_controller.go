@@ -11,6 +11,7 @@ import (
 type SessionController interface {
 	CreateSession(c *gin.Context)
 	DeleteSession(c *gin.Context)
+	LoginCheck(c *gin.Context)
 }
 
 type SessionControllerImpl struct {
@@ -60,4 +61,13 @@ func (s *SessionControllerImpl) DeleteSession(c *gin.Context) {
 	}
 	c.SetCookie("session_id", "", -1, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, "Session deleted")
+}
+
+func (s *SessionControllerImpl) LoginCheck(c *gin.Context) {
+	sessionId, err := c.Cookie("session_id")
+	if err != nil {
+		sessionId = ""
+	}
+	isLogged, err := s.sessionService.LoginCheck(c, sessionId)
+	c.JSON(http.StatusOK, isLogged)
 }
