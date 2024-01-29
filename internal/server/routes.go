@@ -1,36 +1,29 @@
 package server
 
 import (
-	"net/http"
-	"os"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
-
 	"UserService/internal/controllers"
 	"UserService/internal/repositories"
 	"UserService/internal/services"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 
-	store := cookie.NewStore([]byte(os.Getenv("SESSION_KEY")))
-	store.Options(sessions.Options{
-		MaxAge: 60 * 15, // 15 minutes
-	})
-	r.Use(sessions.Sessions("session", store))
-
 	userRepository := repositories.NewUserRepositoryImpl(s.db)
 	userService := services.NewUserServiceImpl(userRepository)
 	userController := controllers.NewUserControllerImpl(userService)
 
+	sessionRepository := repositories.NewSessionRepositoryImpl(s.db)
+	sessionService := services.NewSessionServiceImpl(sessionRepository, userRepository)
+	sessionController := controllers.NewSessionControllerImpl(sessionService)
+
 	api := r.Group("api/v1")
 
 	api.POST("/users", userController.CreateUser)
-	api.POST("/sessions", userController.CreateSession)
-	api.DELETE("/sessions", userController.DeleteSession)
+	api.POST("/sessions", sessionController.CreateSession)
+	api.DELETE("/sessions", sessionController.DeleteSession)
 
 	return r
 }

@@ -21,9 +21,11 @@ type Database interface {
 }
 
 type Collection interface {
+	GetCollection() *mongo.Collection
 	InsertOne(context.Context, interface{}) (interface{}, error)
 	InsertMany(context.Context, []interface{}) ([]interface{}, error)
 	FindOne(context.Context, interface{}) SingleResult
+	DeleteOne(context.Context, interface{}) (int64, error)
 }
 
 type SingleResult interface {
@@ -58,6 +60,10 @@ func (md *mongoDatabase) Collection(colName string) Collection {
 	return &mongoCollection{coll: collection}
 }
 
+func (mc *mongoCollection) GetCollection() *mongo.Collection {
+	return mc.coll
+}
+
 func (mc *mongoCollection) InsertOne(ctx context.Context, document interface{}) (interface{}, error) {
 	id, err := mc.coll.InsertOne(ctx, document)
 	return id.InsertedID, err
@@ -71,6 +77,11 @@ func (mc *mongoCollection) InsertMany(ctx context.Context, documents []interface
 func (mc *mongoCollection) FindOne(ctx context.Context, filter interface{}) SingleResult {
 	sr := mc.coll.FindOne(ctx, filter)
 	return &mongoSingleResult{sr: sr}
+}
+
+func (mc *mongoCollection) DeleteOne(ctx context.Context, filter interface{}) (int64, error) {
+	result, err := mc.coll.DeleteOne(ctx, filter)
+	return result.DeletedCount, err
 }
 
 func (sr *mongoSingleResult) Decode(v interface{}) error {
