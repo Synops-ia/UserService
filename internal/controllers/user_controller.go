@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 
@@ -12,15 +11,13 @@ import (
 
 type UserController interface {
 	CreateUser(c *gin.Context)
-	CreateSession(c *gin.Context)
-	DeleteSession(c *gin.Context)
 }
 
 type UserControllerImpl struct {
 	userService services.UserService
 }
 
-func NewUserControllerImpl(userService services.UserService) *UserControllerImpl {
+func NewUserControllerImpl(userService services.UserService) UserController {
 	return &UserControllerImpl{
 		userService: userService,
 	}
@@ -42,39 +39,6 @@ func (u *UserControllerImpl) CreateUser(c *gin.Context) {
 
 	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, newUser)
-}
-
-func (u *UserControllerImpl) CreateSession(c *gin.Context) {
-	var userToAuthenticate models.User
-
-	if err := c.ShouldBindJSON(&userToAuthenticate); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	session := sessions.Default(c)
-
-	err := u.userService.CreateSession(c, session, userToAuthenticate)
-	if err != nil {
-		c.JSON(errorToCode(err), err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, session.Get("email"))
-}
-
-func (u *UserControllerImpl) DeleteSession(c *gin.Context) {
-	println("cookies: " + c.GetHeader("Cookie"))
-	session := sessions.Default(c)
-	err := u.userService.DeleteSession(session)
-	if err != nil {
-		c.JSON(errorToCode(err), err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"ok": true,
-	})
 }
 
 func errorToCode(err error) int {

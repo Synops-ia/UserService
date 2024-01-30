@@ -6,13 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
-
 	"UserService/internal/controllers"
 	"UserService/internal/repositories"
 	"UserService/internal/services"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -42,11 +41,16 @@ func (s *Server) RegisterRoutes() http.Handler {
 	userService := services.NewUserServiceImpl(userRepository)
 	userController := controllers.NewUserControllerImpl(userService)
 
+	sessionRepository := repositories.NewSessionRepositoryImpl(s.db)
+	sessionService := services.NewSessionServiceImpl(sessionRepository, userRepository)
+	sessionController := controllers.NewSessionControllerImpl(sessionService)
+
 	api := r.Group("api/v1")
 
 	api.POST("/users", userController.CreateUser)
-	api.POST("/sessions", userController.CreateSession)
-	api.DELETE("/sessions", userController.DeleteSession)
+	api.POST("/sessions", sessionController.CreateSession)
+	api.DELETE("/sessions", sessionController.DeleteSession)
+	api.GET("/me", sessionController.LoginCheck)
 
 	return r
 }
