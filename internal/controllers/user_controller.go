@@ -64,6 +64,7 @@ func (u *UserControllerImpl) CreateSession(c *gin.Context) {
 }
 
 func (u *UserControllerImpl) DeleteSession(c *gin.Context) {
+	println("cookies: " + c.GetHeader("Cookie"))
 	session := sessions.Default(c)
 	err := u.userService.DeleteSession(session)
 	if err != nil {
@@ -71,7 +72,9 @@ func (u *UserControllerImpl) DeleteSession(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusMovedPermanently, "/")
+	c.JSON(http.StatusOK, gin.H{
+		"ok": true,
+	})
 }
 
 func errorToCode(err error) int {
