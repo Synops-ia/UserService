@@ -44,8 +44,10 @@ func (s *SessionControllerImpl) CreateSession(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("session_id", sessionIdStr, 3600, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, "Session created")
+	c.SetCookie("session_id", sessionIdStr, 3600, "/", "localhost", true, false)
+	c.JSON(http.StatusOK, gin.H{
+		"email": userToAuthenticate.Email,
+	})
 }
 
 func (s *SessionControllerImpl) DeleteSession(c *gin.Context) {
@@ -60,7 +62,9 @@ func (s *SessionControllerImpl) DeleteSession(c *gin.Context) {
 		return
 	}
 	c.SetCookie("session_id", "", -1, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, "Session deleted")
+	c.JSON(http.StatusOK, gin.H{
+		"ok": true,
+	})
 }
 
 func (s *SessionControllerImpl) LoginCheck(c *gin.Context) {
