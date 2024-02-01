@@ -13,7 +13,7 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5173/"},
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5173/", "http://localhost:8080", "http://localhost:8080/"},
 		AllowMethods:     []string{"POST", "DELETE"},
 		AllowHeaders:     []string{"Content-Type", "Set-Cookie"},
 		ExposeHeaders:    []string{"*"},

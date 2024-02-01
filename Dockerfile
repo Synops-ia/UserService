@@ -1,5 +1,3 @@
-ARG session_key
-
 FROM golang:1.19
 
 ENV PORT=8085
