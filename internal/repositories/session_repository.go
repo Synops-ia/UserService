@@ -9,7 +9,7 @@ import (
 
 type SessionRepository interface {
 	Save(c context.Context, session models.Session) (interface{}, error)
-	DeleteById(c context.Context, sessionId string) error
+	DeleteById(c context.Context, sessionId string) (int64, error)
 	FindById(c context.Context, sessionId string) (models.Session, error)
 }
 
@@ -29,10 +29,10 @@ func (s *SessionRepositoryImpl) Save(c context.Context, session models.Session) 
 	return result, err
 }
 
-func (s *SessionRepositoryImpl) DeleteById(c context.Context, sessionId string) error {
+func (s *SessionRepositoryImpl) DeleteById(c context.Context, sessionId string) (int64, error) {
 	sessions := s.database.Collection("sessions")
-	_, err := sessions.DeleteOne(c, bson.M{"_id": sessionId})
-	return err
+	deletedCount, err := sessions.DeleteOne(c, bson.M{"_id": sessionId})
+	return deletedCount, err
 }
 
 func (s *SessionRepositoryImpl) FindById(c context.Context, sessionId string) (models.Session, error) {

@@ -24,7 +24,7 @@ type UserServiceImpl struct {
 	userRepository repositories.UserRepository
 }
 
-func NewUserServiceImpl(userRepository repositories.UserRepository) *UserServiceImpl {
+func NewUserServiceImpl(userRepository repositories.UserRepository) UserService {
 	return &UserServiceImpl{
 		userRepository: userRepository,
 	}
@@ -41,7 +41,8 @@ func (u *UserServiceImpl) CreateUser(c context.Context, user models.User) error 
 		return ErrHashingPassword
 	}
 	user.Password = string(hashedPassword)
-	err = u.userRepository.Save(c, user)
+
+	_, err = u.userRepository.Save(c, user)
 	if err != nil {
 		return ErrSavingUser
 	}

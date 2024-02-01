@@ -8,7 +8,7 @@ import (
 )
 
 type UserRepository interface {
-	Save(c context.Context, user models.User) error
+	Save(c context.Context, user models.User) (interface{}, error)
 	FindByEmail(c context.Context, email string) (models.User, error)
 }
 
@@ -22,10 +22,10 @@ func NewUserRepositoryImpl(db database.Database) *UserRepositoryImpl {
 	}
 }
 
-func (u *UserRepositoryImpl) Save(c context.Context, user models.User) error {
+func (u *UserRepositoryImpl) Save(c context.Context, user models.User) (interface{}, error) {
 	users := u.database.Collection("users")
-	_, err := users.InsertOne(c, user)
-	return err
+	insertedId, err := users.InsertOne(c, user)
+	return insertedId, err
 }
 
 func (u *UserRepositoryImpl) FindByEmail(c context.Context, email string) (models.User, error) {
@@ -33,14 +33,4 @@ func (u *UserRepositoryImpl) FindByEmail(c context.Context, email string) (model
 	var user models.User
 	err := users.FindOne(c, bson.M{"email": email}).Decode(&user)
 	return user, err
-}
-
-func (u *UserRepositoryImpl) insertMany(c context.Context, user map[string]models.User) error {
-	usersCollection := u.database.Collection("users")
-	var usersInterface []interface{}
-	for _, value := range user {
-		usersInterface = append(usersInterface, value)
-	}
-	_, err := usersCollection.InsertMany(c, usersInterface)
-	return err
 }
