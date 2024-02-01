@@ -4,7 +4,6 @@ FROM golang:1.19
 
 ENV PORT=8085
 ENV APP_ENV=local
-ENV SESSION_KEY $session_key
 
 WORKDIR /app
 
