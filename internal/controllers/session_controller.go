@@ -38,13 +38,7 @@ func (s *SessionControllerImpl) CreateSession(c *gin.Context) {
 		return
 	}
 
-	sessionIdStr, ok := sessionId.(string)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, "Error creating session")
-		return
-	}
-
-	c.SetCookie("session_id", sessionIdStr, 3600, "/", "localhost", true, false)
+	c.SetCookie("session_id", sessionId, 3600, "/", "localhost", true, false)
 	c.JSON(http.StatusOK, gin.H{
 		"email": userToAuthenticate.Email,
 	})
@@ -56,12 +50,13 @@ func (s *SessionControllerImpl) DeleteSession(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
+
 	err = s.sessionService.DeleteSession(c, sessionId)
 	if err != nil {
 		c.JSON(errorToCode(err), err.Error())
 		return
 	}
-	c.SetCookie("session_id", "", -1, "/", "localhost", false, true)
+	c.SetCookie("session_id", "", -1, "/", "localhost", true, false)
 	c.JSON(http.StatusOK, gin.H{
 		"ok": true,
 	})
@@ -72,6 +67,6 @@ func (s *SessionControllerImpl) LoginCheck(c *gin.Context) {
 	if err != nil {
 		sessionId = ""
 	}
-	isLogged, err := s.sessionService.LoginCheck(c, sessionId)
+	isLogged := s.sessionService.LoginCheck(c, sessionId)
 	c.JSON(http.StatusOK, isLogged)
 }

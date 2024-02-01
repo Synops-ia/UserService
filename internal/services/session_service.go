@@ -18,9 +18,9 @@ var (
 )
 
 type SessionService interface {
-	CreateSession(c context.Context, userToAuthenticate models.User) (interface{}, error)
+	CreateSession(c context.Context, userToAuthenticate models.User) (string, error)
 	DeleteSession(c context.Context, sessionId string) error
-	LoginCheck(c context.Context, sessionId string) (bool, error)
+	LoginCheck(c context.Context, sessionId string) bool
 }
 
 type SessionServiceImpl struct {
@@ -35,39 +35,47 @@ func NewSessionServiceImpl(sessionRepository repositories.SessionRepository, use
 	}
 }
 
-func (s *SessionServiceImpl) CreateSession(c context.Context, userToAuthenticate models.User) (interface{}, error) {
+func (s *SessionServiceImpl) CreateSession(c context.Context, userToAuthenticate models.User) (string, error) {
 	userStored, err := s.userRepository.FindByEmail(c, userToAuthenticate.Email)
 	if userStored == (models.User{}) {
-		return nil, ErrUserNotFound
+		return "", ErrUserNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userStored.Password), []byte(userToAuthenticate.Password))
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return "", ErrInvalidCredentials
 	}
 
 	session := models.Session{Id: uuid.New().String(), UserEmail: userStored.Email}
-	sessionId, err := s.sessionRepository.Save(c, session)
+	sessionIdResult, err := s.sessionRepository.Save(c, session)
 	if err != nil {
-		return nil, ErrCreatingSession
+		return "", ErrCreatingSession
+	}
+
+	sessionId, ok := sessionIdResult.(string)
+	if !ok {
+		return "", ErrCreatingSession
 	}
 
 	return sessionId, nil
 }
 
 func (s *SessionServiceImpl) DeleteSession(c context.Context, sessionId string) error {
-	err := s.sessionRepository.DeleteById(c, sessionId)
+	deletedCount, err := s.sessionRepository.DeleteById(c, sessionId)
 	if err != nil {
 		return ErrDeletingSession
+	}
+	if deletedCount == 0 {
+		return ErrSessionNotFound
 	}
 
 	return nil
 }
 
-func (s *SessionServiceImpl) LoginCheck(c context.Context, sessionId string) (bool, error) {
-	_, err := s.sessionRepository.FindById(c, sessionId)
-	if err != nil {
-		return false, ErrSessionNotFound
+func (s *SessionServiceImpl) LoginCheck(c context.Context, sessionId string) bool {
+	session, err := s.sessionRepository.FindById(c, sessionId)
+	if err != nil || session == (models.Session{}) {
+		return false
 	}
-	return true, nil
+	return true
 }
